@@ -1,0 +1,5 @@
+dn: cn=administrators,ou=groups,dc=espy,dc=cloud
+cn: Administrators
+objectclass: top
+objectclass: groupofnames
+member: uid=user1,ou=users,dc=espy,dc=cloud

@@ -1,0 +1,16 @@
+cn: dc=wazuh,dc=local
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: wazuh
+dc: wazuh
+
+dn: ou=users,dc=wazuh,dc=local
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=wazuh,dc=local
+objectClass: top
+objectClass: organizationalUnit
+ou: groups

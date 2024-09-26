@@ -1,0 +1,9 @@
+dn: uid=user1,ou=users,dc=espy,dc=cloud
+givenName: User1
+sn: User1
+cn: User One
+mail: user1@wazuh.local
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: user1
