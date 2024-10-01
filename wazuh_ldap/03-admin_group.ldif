@@ -1,5 +1,11 @@
-dn: cn=administrators,ou=groups,dc=espy,dc=cloud
-cn: Administrators
+dn: cn=wazuh-admin,ou=groups,dc=espy,dc=cloud
+cn: Wazuh Administrators
+objectclass: top
+objectclass: groupofnames
+member: uid=manager1,ou=managers,dc=espy,dc=cloud
+
+dn: cn=wazuh-user,ou=groups,dc=espy,dc=cloud
+cn: Wazuh Users
 objectclass: top
 objectclass: groupofnames
 member: uid=user1,ou=users,dc=espy,dc=cloud

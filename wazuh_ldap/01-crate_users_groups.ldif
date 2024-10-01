@@ -10,6 +10,11 @@ objectClass: top
 objectClass: organizationalUnit
 ou: users
 
+dn: ou=managers,dc=wazuh,dc=local
+objectClass: top
+objectClass: organizationalUnit
+ou: managers
+
 dn: ou=groups,dc=wazuh,dc=local
 objectClass: top
 objectClass: organizationalUnit

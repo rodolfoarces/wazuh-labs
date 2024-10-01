@@ -7,3 +7,23 @@ objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
 uid: user1
+
+dn: uid=guest1,ou=users,dc=espy,dc=cloud
+givenName: Guest1
+sn: Guest1
+cn: Guest One
+mail: guest1@wazuh.local
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: guest1
+
+dn: uid=manager1,ou=managers,dc=espy,dc=cloud
+givenName: Manager1
+sn: Manager1
+cn: Manager One
+mail: manager1@wazuh.local
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: manager1

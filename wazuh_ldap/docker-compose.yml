@@ -1,0 +1,29 @@
+services:
+  openldap:
+    image: "osixia/openldap:latest"
+    env_file: ".env"
+    hostname: ldap_host
+    environment:
+      - LDAP_DOMAIN=${LDAP_DOMAIN}
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+    ports:
+      - "389:389"
+      - "636:636"
+    networks:
+      - local
+
+  phpldapadmin:
+    image: "osixia/phpldapadmin:latest"
+    env_file: ".env"
+    environment:
+      - PHPLDAPADMIN_LDAP_HOSTS=ldap_host
+    ports:
+      - "8443:443"
+    networks:
+      - local
+
+
+networks:
+  local:
+    external: true
+
