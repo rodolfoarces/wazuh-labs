@@ -1,7 +1,6 @@
-# wazuh-labs
-Wazuh labs and tests
+# Wazuh LDAP Tests
 
-Create and `.env` file, you can use the `.env.example` file provided in the repository
+Create an `.env` file, you can use the `.env.example` file provided in the repository
 
 This commands use the password on the `.env.example` file, update it with you ldap admin password
 
