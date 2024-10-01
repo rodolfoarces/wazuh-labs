@@ -6,6 +6,10 @@ services:
     environment:
       - LDAP_DOMAIN=${LDAP_DOMAIN}
       - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+    volumes:
+      - ./01-crate_users_groups.ldif:/root/01-crate_users_groups.ldif
+      - ./02-base_users.ldif:/root/02-base_users.ldif
+      - ./03-admin_group.ldif:/root/03-admin_group.ldif
     ports:
       - "389:389"
       - "636:636"

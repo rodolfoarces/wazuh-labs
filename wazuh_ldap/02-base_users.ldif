@@ -1,4 +1,4 @@
-dn: uid=user1,ou=users,dc=espy,dc=cloud
+dn: uid=user1,ou=users,dc=wazuh,dc=local
 givenName: User1
 sn: User1
 cn: User One
@@ -8,7 +8,7 @@ objectClass: organizationalPerson
 objectClass: inetOrgPerson
 uid: user1
 
-dn: uid=guest1,ou=users,dc=espy,dc=cloud
+dn: uid=guest1,ou=users,dc=wazuh,dc=local
 givenName: Guest1
 sn: Guest1
 cn: Guest One
@@ -18,7 +18,7 @@ objectClass: organizationalPerson
 objectClass: inetOrgPerson
 uid: guest1
 
-dn: uid=manager1,ou=managers,dc=espy,dc=cloud
+dn: uid=manager1,ou=managers,dc=wazuh,dc=local
 givenName: Manager1
 sn: Manager1
 cn: Manager One
