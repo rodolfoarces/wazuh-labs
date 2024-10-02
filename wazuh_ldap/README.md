@@ -27,3 +27,72 @@ docker compose -f ./wazuh-labs/wazuh_ldap/docker-compose.yml exec -it openldap l
 docker compose -f ./wazuh-labs/wazuh_ldap/docker-compose.yml exec -it openldap ldappasswd -x -D "cn=admin,dc=wazuh,dc=local" -S "uid=manager1,ou=managers,dc=wazuh,dc=local" -w "S3cret"
 
 ```
+
+Modifications to the `/etc/wazuh-indexer/opensearch-security/config.yml` file in the Authentication section
+
+```
+authc:
+...
+ldap:
+        description: "Authenticate via LDAP or Active Directory"
+        http_enabled: true
+        transport_enabled: true
+        order: 1
+        http_authenticator:
+          type: basic
+          challenge: false
+        authentication_backend:
+          type: ldap
+          config:
+            enable_ssl: false
+            enable_start_tls: false
+            enable_ssl_client_auth: false
+            verify_hostnames: false
+            hosts:
+            - 10.1.1.156:389
+            bind_dn: "cn=admin,dc=wazuh,dc=local"
+            password: "S3cret"
+            users:
+              primary-userbase:
+                base: 'ou=managers,dc=wazuh,dc=local'
+                search: '(uid={0})'
+              secondary-userbase:
+                base: 'ou=users,dc=wazuh,dc=local'
+                search: '(uid={0})'
+            username_attribute: uid
+```
+
+Modifications to the `/etc/wazuh-indexer/opensearch-security/config.yml` file in the Authorization section
+
+```
+ authz:
+      roles_from_myldap:
+        description: "Authorize via LDAP or Active Directory"
+        http_enabled: true
+        transport_enabled: true
+        authorization_backend:
+          type: ldap
+          config:
+            # enable ldaps
+            enable_ssl: false
+            enable_start_tls: false
+            enable_ssl_client_auth: false
+            verify_hostnames: false
+            hosts:
+            - 10.1.1.156:389
+            bind_dn: "cn=admin,dc=wazuh,dc=local"
+            password: "S3cret"
+            rolebase: 'ou=groups,dc=wazuh,dc=local'
+            rolesearch: '(member={0})'
+            userroleattribute: null
+            userrolename: disabled
+            rolename: cn
+            resolve_nested_roles: true
+            users:
+              primary-userbase:
+                base: 'ou=managers,dc=wazuh,dc=local'
+                search: '(uid={0})'
+              secondary-userbase:
+                base: 'ou=users,dc=wazuh,dc=local'
+                search: '(uid={0})'
+```
