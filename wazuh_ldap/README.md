@@ -1,5 +1,11 @@
 # Wazuh LDAP Tests
 
+## Rationale
+
+Create a LDAP User and group Structure, and configure the Wazuh Indexer to test adding multiple users sources to the Wazuh Indexer Authentication and Authorization process.
+
+## Deploy LDAP container
+
 Create an `.env` file, you can use the `.env.example` file provided in the repository
 
 This commands use the password on the `.env.example` file, update it with you ldap admin password
@@ -15,9 +21,7 @@ docker compose -f ./wazuh-labs/wazuh_ldap/docker-compose.yml exec openldap ldapa
 
 ```
 
-
 Commands to set passwords to users
-
 
 ```
 docker compose -f ./wazuh-labs/wazuh_ldap/docker-compose.yml exec -it openldap ldappasswd -x -D "cn=admin,dc=wazuh,dc=local" -S "uid=user1,ou=users,dc=wazuh,dc=local" -w "S3cret"
@@ -27,6 +31,8 @@ docker compose -f ./wazuh-labs/wazuh_ldap/docker-compose.yml exec -it openldap l
 docker compose -f ./wazuh-labs/wazuh_ldap/docker-compose.yml exec -it openldap ldappasswd -x -D "cn=admin,dc=wazuh,dc=local" -S "uid=manager1,ou=managers,dc=wazuh,dc=local" -w "S3cret"
 
 ```
+
+## Configure Wazuh
 
 Modifications to the `/etc/wazuh-indexer/opensearch-security/config.yml` file in the Authentication section
 
@@ -95,4 +101,17 @@ Modifications to the `/etc/wazuh-indexer/opensearch-security/config.yml` file in
               secondary-userbase:
                 base: 'ou=users,dc=wazuh,dc=local'
                 search: '(uid={0})'
+```
+
+Apply configurations from file `/etc/wazuh-indexer/opensearch-security/config.yml` to the Wazuh Indexer
+
+```
+export JAVA_HOME=/usr/share/wazuh-indexer/jdk/ && bash /usr/share/wazuh-indexer/plugins/opensearch-security/tools/securityadmin.sh -f /etc/wazuh-indexer/opensearch-security/config.yml -icl -key /etc/wazuh-indexer/certs/admin-key.pem -cert /etc/wazuh-indexer/certs/admin.pem -cacert /etc/wazuh-indexer/certs/root-ca.pem -h 10.1.1.155 -nhnv
+```
+
+
+Apply configurations from file `/etc/wazuh-indexer/opensearch-security/roles_mapping.yml` to the Wazuh Indexer
+
+```
+export JAVA_HOME=/usr/share/wazuh-indexer/jdk/ && bash /usr/share/wazuh-indexer/plugins/opensearch-security/tools/securityadmin.sh -f /etc/wazuh-indexer/opensearch-security/roles_mapping.yml -icl -key /etc/wazuh-indexer/certs/admin-key.pem -cert /etc/wazuh-indexer/certs/admin.pem -cacert /etc/wazuh-indexer/certs/root-ca.pem -h 10.1.1.155 -nhnv
 ```
