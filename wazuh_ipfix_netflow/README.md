@@ -59,3 +59,40 @@ Per the project documentation, a container is launched with the collector inform
 ```
 docker run -it --rm networkstatic/nflow-generator -t 10.1.1.152 -p 4739
 ```
+
+## Results
+
+```
+{"@type":"ipfix.entry","iana:sourceIPv4Address":"150.98.238.115","iana:destinationIPv4Address":"45.119.204.36","iana:ipNextHopIPv4Address":"54.188.6.212","iana:ingressInterface":0,"iana:egressInterface":0,"iana:packetDeltaCount":27,"iana:octetDeltaCount":476,"iana:flowStartMilliseconds":"2024-10-08T13:25:40.594Z","iana:flowEndMilliseconds":"2024-10-08T13:25:40.615Z","iana:sourceTransportPort":34646,"iana:destinationTransportPort":64471,"iana:tcpControlBits":"......","iana:protocolIdentifier":"TCP","iana:ipClassOfService":0,"iana:bgpSourceAsNumber":27445,"iana:bgpDestinationAsNumber":49777,"iana:sourceIPv4PrefixLength":23,"iana:destinationIPv4PrefixLength":28,"iana:samplingAlgorithm":0,"iana:samplingInterval":0}
+```
+
+Wazuh Rulset test
+
+```
+**Phase 1: Completed pre-decoding.
+	full event: '{"@type":"ipfix.entry","iana:sourceIPv4Address":"150.98.238.115","iana:destinationIPv4Address":"45.119.204.36","iana:ipNextHopIPv4Address":"54.188.6.212","iana:ingressInterface":0,"iana:egressInterface":0,"iana:packetDeltaCount":27,"iana:octetDeltaCount":476,"iana:flowStartMilliseconds":"2024-10-08T13:25:40.594Z","iana:flowEndMilliseconds":"2024-10-08T13:25:40.615Z","iana:sourceTransportPort":34646,"iana:destinationTransportPort":64471,"iana:tcpControlBits":"......","iana:protocolIdentifier":"TCP","iana:ipClassOfService":0,"iana:bgpSourceAsNumber":27445,"iana:bgpDestinationAsNumber":49777,"iana:sourceIPv4PrefixLength":23,"iana:destinationIPv4PrefixLength":28,"iana:samplingAlgorithm":0,"iana:samplingInterval":0}'
+
+**Phase 2: Completed decoding.
+	name: 'json'
+	@type: 'ipfix.entry'
+	iana:bgpDestinationAsNumber: '49777'
+	iana:bgpSourceAsNumber: '27445'
+	iana:destinationIPv4Address: '45.119.204.36'
+	iana:destinationIPv4PrefixLength: '28'
+	iana:destinationTransportPort: '64471'
+	iana:egressInterface: '0'
+	iana:flowEndMilliseconds: '2024-10-08T13:25:40.615Z'
+	iana:flowStartMilliseconds: '2024-10-08T13:25:40.594Z'
+	iana:ingressInterface: '0'
+	iana:ipClassOfService: '0'
+	iana:ipNextHopIPv4Address: '54.188.6.212'
+	iana:octetDeltaCount: '476'
+	iana:packetDeltaCount: '27'
+	iana:protocolIdentifier: 'TCP'
+	iana:samplingAlgorithm: '0'
+	iana:samplingInterval: '0'
+	iana:sourceIPv4Address: '150.98.238.115'
+	iana:sourceIPv4PrefixLength: '23'
+	iana:sourceTransportPort: '34646'
+	iana:tcpControlBits: '......'
+```
