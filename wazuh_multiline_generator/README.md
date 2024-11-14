@@ -12,10 +12,6 @@ Add a group to forward log collection configurtions
 		<multiline_regex replace="wspace" match="start">endpoint:/</multiline_regex>
 	</localfile>
 </agent_config>
-
-<decoder name="custom-webapp">
-    <prematch>^endpoint:/</prematch>
-</decoder>
 ```
 
 ## Decoders
