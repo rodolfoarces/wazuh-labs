@@ -40,7 +40,7 @@ def addMessage(file):
     try:
         f = open(file, 'a+')
     except IOError:
-        print("Error opening log file")
+        print("Error opening log file, exiting")
         exit(1)
 
     f.write(getEndpointMessage() + "\n" + getLogTime() + "\n" + getResponseTime())
@@ -50,7 +50,7 @@ file = None
 try:
     file = sys.argv[1]
 except IndexError:
-    print("provided a file")
+    print("File not provided, exiting")
     exit(2)
 
 while file != None:
