@@ -1,5 +1,17 @@
 # Required configurations
 
+## App installation
+
+Download python 3
+
+### Windows
+
+Run it as a background job
+
+```
+Start-Job { C:\app\python3\python.exe C:\app\bin\app.py C:\app\logs\out.log }
+```
+
 ## Monitoring the file
 
 Add a group to forward log collection configurtions
