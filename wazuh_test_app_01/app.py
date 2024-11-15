@@ -36,6 +36,13 @@ def getResponseTime():
     response_message= "x-responsetime:" + str(response_time) + ", " + str(response_time) + " ms" 
     return response_message
 
+def getAddedlines():
+    first_line = "Service: Login\n"
+    second_line = "ResponseCode: 200 OK, Errors: 0"
+    added_message = first_line + second_line
+    return added_message
+
+
 def addMessage(file):
     try:
         f = open(file, 'a+')
@@ -43,7 +50,7 @@ def addMessage(file):
         print("Error opening log file, exiting")
         exit(1)
 
-    f.write(getEndpointMessage() + "\n" + getLogTime() + "\n" + getResponseTime())
+    f.write(getEndpointMessage() + "\n" + getLogTime() + "\n" + getResponseTime() + "\n" + getAddedlines() + "\n")
 
 file = None
 
