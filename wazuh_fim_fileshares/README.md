@@ -2,7 +2,7 @@
 
 ## Samba server
 
-Launch a samba server with multiple file shares. Some shares require authentication.
+Launch a Samba server with multiple file shares. Some shares require authentication.
 
 ```
 sudo docker run -it -p 139:139 -p 445:445 -d dperson/samba -p \
@@ -13,6 +13,8 @@ sudo docker run -it -p 139:139 -p 445:445 -d dperson/samba -p \
             -s "user1;/home/user1;no;no;no;user1" \
             -s "user2;/home/user2;no;no;no;user2"
 ```
+
+* [Samba docker container](https://hub.docker.com/r/dperson/samba)
 
 ## FIM Module configuration
 
@@ -28,7 +30,7 @@ When mounting a shared directory as a drive: `\\10.1.1.4\public` -> `Z:`, this c
 </syscheck>
 ``` 
 
-Shared drives were monitored, accessed and browsed, the previous example as a network drive, and `\\10.1.1.4\user1`, this las configuration requires authentication
+Shared drives were monitored, accessed, and browsed, the previous example as a network drive, and `\\10.1.1.4\user1`, this last configuration requires authentication
 
 ```
 <syscheck>
@@ -38,4 +40,3 @@ Shared drives were monitored, accessed and browsed, the previous example as a ne
       <skip_nfs>no</skip_nfs>
 </syscheck>
 ```
-
