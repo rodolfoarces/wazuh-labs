@@ -1,6 +1,6 @@
-# Reporting scripts
+# Sycollector reporting scripts
 
-To obtain index data from syscheck and syscollector, these helper scripts can help
+To obtain data from syscollector and forward as events, you can use this script.
 
 You will need to download the files and place them in a directory in the Wazuh Manager (Master or Worker)
 
