@@ -20,6 +20,7 @@ fh.setFormatter(fh_formatter)
 logger.addHandler(fh)
 
 def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/containers/json'):
+    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Container
     try:
         containers = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         output, errors = containers.communicate()
@@ -34,7 +35,7 @@ def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_que
 def postContainers(containers, local_file = None):
     for container in containers:
         if container["State"] == 'running':
-            msg = { 'service': 'docker', 'docker': container }
+            msg = { 'service': 'docker', 'docker_container': container }
             # Default action is to send information via agent/socket
             if local_file == None: 
                 string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
@@ -54,14 +55,52 @@ def postContainers(containers, local_file = None):
                     f.write(msg)
                 except IOError:
                     logger.error("Error opening output file")
-                    exit(3)            
-            
+                    exit(3)
+
+def getImages(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/images/json'):
+    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Image
+    try:
+        images = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output, errors = images.communicate()
+        r = json.loads(output)
+        #print(str(r))
+    except Exception as error:
+        logger.error('General error: {0}', error)
+        exit(1)
+        
+    return (images)            
+    
+def postImages(images, local_file = None):
+    for image in images:
+        msg = { 'service': 'docker', 'docker_image': image }
+        # Default action is to send information via agent/socket
+        if local_file == None: 
+            string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
+            try:
+                sock = socket(AF_UNIX, SOCK_DGRAM)
+                sock.connect(WAZUH_SOCKET)
+                sock.send(string.encode())
+                sock.close()
+            except FileNotFoundError:
+                logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
+                exit(2)
+        # Alternativa option is to save it to a file
+        else:
+            logger.debug("Saving containers information to : %s" % local_file)
+            try:
+                f = open(local_file, 'a+')
+                f.write(msg)
+            except IOError:
+                logger.error("Error opening output file")
+                exit(3)
+                          
 if __name__ == "__main__":
     # Read parameters using argparse
     ## Initialize parser
     parser = argparse.ArgumentParser()
     ## Adding optional argument
     parser.add_argument("-c", "--containers", help = "Obtain running container list", action="store_true")
+    parser.add_argument("-i", "--images", help = "Obtain running container list", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
     parser.add_argument("-o", "--output", help = "Log output to file")
     parser.add_argument("-D", "--debug", help = "Enable debug", action="store_true")
@@ -78,7 +117,8 @@ if __name__ == "__main__":
         logger.setLevel(logging.DEBUG)
     else:
         logger.setLevel(logging.INFO)
-    # If file is set, everything goes there
+    
+    # If output file is set, all messages go there
     if args.output:
         # create console handler with a higher log level
         fh = logging.FileHandler(args.output)
@@ -118,3 +158,11 @@ if __name__ == "__main__":
             exit(3)
     else:
         local_file = None
+        
+    if args.containers:
+        getContainers()
+        postContainers(local_file=local_file)
+    
+    if args.images:
+        getImages()
+        postImages(local_file=local_file)
