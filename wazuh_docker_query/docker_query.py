@@ -93,6 +93,44 @@ def postImages(images, local_file = None):
             except IOError:
                 logger.error("Error opening output file")
                 exit(3)
+
+def getVolumes(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/volumes'):
+    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Image
+    try:
+        images = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output, errors = images.communicate()
+        r = json.loads(output)
+        #print(str(r))
+    except Exception as error:
+        logger.error('General error: {0}', error)
+        exit(1)
+        
+    return (images)            
+    
+def postVolumes(volumes, local_file = None):
+    for volume in volumes:
+        msg = { 'service': 'docker', 'docker_volumes': volume }
+        # Default action is to send information via agent/socket
+        if local_file == None: 
+            string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
+            try:
+                sock = socket(AF_UNIX, SOCK_DGRAM)
+                sock.connect(WAZUH_SOCKET)
+                sock.send(string.encode())
+                sock.close()
+            except FileNotFoundError:
+                logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
+                exit(2)
+        # Alternativa option is to save it to a file
+        else:
+            logger.debug("Saving containers information to : %s" % local_file)
+            try:
+                f = open(local_file, 'a+')
+                f.write(msg)
+            except IOError:
+                logger.error("Error opening output file")
+                exit(3)
+
                           
 if __name__ == "__main__":
     # Read parameters using argparse
@@ -101,6 +139,7 @@ if __name__ == "__main__":
     ## Adding optional argument
     parser.add_argument("-c", "--containers", help = "Obtain running container list", action="store_true")
     parser.add_argument("-i", "--images", help = "Obtain running container list", action="store_true")
+    parser.add_argument("-v", "--volumes", help = "Obtain volumes list", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
     parser.add_argument("-o", "--output", help = "Log output to file")
     parser.add_argument("-D", "--debug", help = "Enable debug", action="store_true")
@@ -166,3 +205,7 @@ if __name__ == "__main__":
     if args.images:
         getImages()
         postImages(local_file=local_file)
+        
+    if args.volumes:
+        getVolumes()
+        postVolumes(local_file=local_file)
