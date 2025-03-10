@@ -26,45 +26,43 @@ def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_que
         r = json.loads(output)
         #print(str(r))
     except Exception as error:
-        print('General error: {0}',error)
+        logger.error('General error: {0}', error)
         exit(1)
         
     return (containers)
 
-def postContainersToSocket(containers):
+def postContainers(containers, local_file = None):
     for container in containers:
         if container["State"] == 'running':
             msg = { 'service': 'docker', 'docker': container }
-            #print(json.dumps(container))
-            string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
-            print(string)
-            try:
-                sock = socket(AF_UNIX, SOCK_DGRAM)
-                sock.connect(WAZUH_SOCKET)
-                sock.send(string.encode())
-                sock.close()
-            except FileNotFoundError:
-                print('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
-                exit(2)
-
-def postContainerstoFile(containers, output_file):
-    logger.debug("Saving containers information to : %s" % output_file)
-    try:
-        f = open(output_file, 'a+')
-        for container in containers:
-            if container["State"] == 'running':
-                msg = { 'service': 'docker', 'docker': container }
-                f.write(msg)
-    except IOError:
-        logger.error("Error opening output file")
-        exit(3)
-
+            # Default action is to send information via agent/socket
+            if local_file == None: 
+                string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
+                try:
+                    sock = socket(AF_UNIX, SOCK_DGRAM)
+                    sock.connect(WAZUH_SOCKET)
+                    sock.send(string.encode())
+                    sock.close()
+                except FileNotFoundError:
+                    logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
+                    exit(2)
+            # Alternativa option is to save it to a file
+            else:
+                logger.debug("Saving containers information to : %s" % local_file)
+                try:
+                    f = open(local_file, 'a+')
+                    f.write(msg)
+                except IOError:
+                    logger.error("Error opening output file")
+                    exit(3)            
+            
 if __name__ == "__main__":
     # Read parameters using argparse
     ## Initialize parser
     parser = argparse.ArgumentParser()
     ## Adding optional argument
     parser.add_argument("-c", "--containers", help = "Obtain running container list", action="store_true")
+    parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
     parser.add_argument("-o", "--output", help = "Log output to file")
     parser.add_argument("-D", "--debug", help = "Enable debug", action="store_true")
     #parser.add_argument("-l", "--local", help = "Use local file to store events, requires: -d DIR|FILE", action="store")
@@ -109,3 +107,14 @@ if __name__ == "__main__":
         fh.setFormatter(fh_formatter)
         # add the handlers to the logger
         logger.addHandler(fh)
+        
+    if args.local:
+        try:
+            # testing if the script can access the local file
+            local_file = open(args.local, 'a+')
+            local_file.close()
+        except IOError:
+            logger.error("Error opening local file")
+            exit(3)
+    else:
+        local_file = None
