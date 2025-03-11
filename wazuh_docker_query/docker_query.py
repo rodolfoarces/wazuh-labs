@@ -87,6 +87,7 @@ def postImages(images, local_file = None):
             try:
                 f = open(local_file, 'a+')
                 f.write(json.dumps(msg))
+                f.close()
             except IOError:
                 logger.error("Error opening output file")
                 exit(3)
@@ -122,6 +123,7 @@ def postVolumes(volumes, local_file = None):
             try:
                 f = open(local_file, 'a+')
                 f.write(json.dumps(msg))
+                f.close()
             except IOError:
                 logger.error("Error opening output file")
                 exit(3)
@@ -156,6 +158,7 @@ def postVersion(version, local_file = None):
         try:
             f = open(local_file, 'a+')
             f.write(json.dumps(msg))
+            f.close()
         except IOError:
             logger.error("Error opening output file")
             exit(3)
@@ -190,6 +193,7 @@ def postInfo(info, local_file = None):
         try:
             f = open(local_file, 'a+')
             f.write(json.dumps(msg))
+            f.close()
         except IOError:
             logger.error("Error opening output file")
             exit(3)
