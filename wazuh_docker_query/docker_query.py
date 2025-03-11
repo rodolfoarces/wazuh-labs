@@ -28,8 +28,7 @@ def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_que
         #print(str(r))
     except Exception as error:
         logger.error('General error: {0}', error)
-        exit(1)
-        
+        exit(1)    
     return (containers)
 
 def postContainers(containers, local_file = None):
@@ -66,8 +65,7 @@ def getImages(docker_socket_file = '/var/run/docker.sock', docker_socket_query =
         #print(str(r))
     except Exception as error:
         logger.error('General error: {0}', error)
-        exit(1)
-        
+        exit(1)    
     return (images)            
     
 def postImages(images, local_file = None):
@@ -95,7 +93,7 @@ def postImages(images, local_file = None):
                 exit(3)
 
 def getVolumes(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/volumes'):
-    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Image
+    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Volume
     try:
         images = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         output, errors = images.communicate()
@@ -103,8 +101,7 @@ def getVolumes(docker_socket_file = '/var/run/docker.sock', docker_socket_query 
         #print(str(r))
     except Exception as error:
         logger.error('General error: {0}', error)
-        exit(1)
-        
+        exit(1)   
     return (images)            
     
 def postVolumes(volumes, local_file = None):
@@ -131,6 +128,75 @@ def postVolumes(volumes, local_file = None):
                 logger.error("Error opening output file")
                 exit(3)
 
+def getVersion(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/version'):
+    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/System/operation/SystemVersion
+    try:
+        version = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output, errors = version.communicate()
+        r = json.loads(output)
+        #print(str(r))
+    except Exception as error:
+        logger.error('General error: {0}', error)
+        exit(1)      
+    return (version)
+
+def postVersion(version, local_file = None):
+    msg = { 'service': 'docker', 'docker_version': version }
+    # Default action is to send information via agent/socket
+    if local_file == None: 
+        string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
+        try:
+            sock = socket(AF_UNIX, SOCK_DGRAM)
+            sock.connect(WAZUH_SOCKET)
+            sock.send(string.encode())
+            sock.close()
+        except FileNotFoundError:
+            logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
+            exit(2)
+    # Alternativa option is to save it to a file
+    else:
+        logger.debug("Saving containers information to : %s" % local_file)
+        try:
+            f = open(local_file, 'a+')
+            f.write(msg)
+        except IOError:
+            logger.error("Error opening output file")
+            exit(3)
+            
+def getInfo(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/info'):
+    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/System/operation/SystemInfo
+    try:
+        info = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output, errors = info.communicate()
+        r = json.loads(output)
+        #print(str(r))
+    except Exception as error:
+        logger.error('General error: {0}', error)
+        exit(1)   
+    return (info)
+
+def postInfo(info, local_file = None):
+    msg = { 'service': 'docker', 'docker_info': info }
+    # Default action is to send information via agent/socket
+    if local_file == None: 
+        string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
+        try:
+            sock = socket(AF_UNIX, SOCK_DGRAM)
+            sock.connect(WAZUH_SOCKET)
+            sock.send(string.encode())
+            sock.close()
+        except FileNotFoundError:
+            logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
+            exit(2)
+    # Alternativa option is to save it to a file
+    else:
+        logger.debug("Saving containers information to : %s" % local_file)
+        try:
+            f = open(local_file, 'a+')
+            f.write(msg)
+        except IOError:
+            logger.error("Error opening output file")
+            exit(3)
                           
 if __name__ == "__main__":
     # Read parameters using argparse
@@ -140,6 +206,8 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--containers", help = "Obtain running container list", action="store_true")
     parser.add_argument("-i", "--images", help = "Obtain running container list", action="store_true")
     parser.add_argument("-v", "--volumes", help = "Obtain volumes list", action="store_true")
+    parser.add_argument("-V", "--docker-version", help = "Obtain software version", action="store_true")
+    parser.add_argument("-I", "--docker-info", help = "Obtain software version", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
     parser.add_argument("-o", "--output", help = "Log output to file")
     parser.add_argument("-D", "--debug", help = "Enable debug", action="store_true")
@@ -209,3 +277,11 @@ if __name__ == "__main__":
     if args.volumes:
         getVolumes()
         postVolumes(local_file=local_file)
+    
+    if args.docker-version:
+        getVersion()
+        postVersion(local_file=local_file)
+        
+    if args.docker-info:
+        getInfo()
+        postInfo(local_file=local_file)
