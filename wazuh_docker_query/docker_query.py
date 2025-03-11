@@ -32,29 +32,35 @@ def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_que
     return (output_containers)
 
 def postContainers(containers, local_file = None):
-    for container in containers:
-        if container["State"] == 'running':
-            msg = { 'service': 'docker', 'docker_container': container }
-            # Default action is to send information via agent/socket
-            if local_file == None: 
-                string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
-                try:
-                    sock = socket(AF_UNIX, SOCK_DGRAM)
-                    sock.connect(WAZUH_SOCKET)
-                    sock.send(string.encode())
-                    sock.close()
-                except FileNotFoundError:
-                    logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
-                    exit(2)
-            # Alternativa option is to save it to a file
-            else:
-                logger.debug("Saving containers information to : %s" % local_file)
-                try:
-                    f = open(local_file, 'a+')
-                    f.write(msg)
-                except IOError:
-                    logger.error("Error opening output file")
-                    exit(3)
+    if len(containers) <= 0:
+        pass
+    elif len(containers) == 1:
+        logger.debug("Processing single container information")
+    elif len(containers) >= 1:
+        logger.debug("Processing multiple containers: %d", len(containers) )
+        for container in containers:
+            if container["State"] == 'running':
+                msg = { 'service': 'docker', 'docker_container': container }
+                # Default action is to send information via agent/socket
+                if local_file == None: 
+                    string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
+                    try:
+                        sock = socket(AF_UNIX, SOCK_DGRAM)
+                        sock.connect(WAZUH_SOCKET)
+                        sock.send(string.encode())
+                        sock.close()
+                    except FileNotFoundError:
+                        logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
+                        exit(2)
+                # Alternativa option is to save it to a file
+                else:
+                    logger.debug("Saving containers information to : %s" % local_file)
+                    try:
+                        f = open(local_file, 'a+')
+                        f.write(msg)
+                    except IOError:
+                        logger.error("Error opening output file")
+                        exit(3)
 
 def getImages(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/images/json'):
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Image
@@ -264,20 +270,20 @@ if __name__ == "__main__":
         
     if args.containers:
         getContainers()
-        postContainers(local_file=local_file)
+        #postContainers(local_file=local_file)
     
     if args.images:
         getImages()
-        postImages(local_file=local_file)
+        #postImages(local_file=local_file)
         
     if args.volumes:
         getVolumes()
-        postVolumes(local_file=local_file)
+        #postVolumes(local_file=local_file)
     
     if args.docker-version:
         getVersion()
-        postVersion(local_file=local_file)
+        #postVersion(local_file=local_file)
         
     if args.docker-info:
         getInfo()
-        postInfo(local_file=local_file)
+        #postInfo(local_file=local_file)
