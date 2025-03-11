@@ -51,7 +51,7 @@ def postContainers(containers, local_file = None):
                 logger.debug("Saving containers information to : %s" % local_file)
                 try:
                     f = open(local_file, 'a+')
-                    f.write(msg)
+                    f.write(json.dumps(msg))
                 except IOError:
                     logger.error("Error opening output file")
                     exit(3)
@@ -86,7 +86,7 @@ def postImages(images, local_file = None):
             logger.debug("Saving containers information to : %s" % local_file)
             try:
                 f = open(local_file, 'a+')
-                f.write(msg)
+                f.write(json.dumps(msg))
             except IOError:
                 logger.error("Error opening output file")
                 exit(3)
@@ -121,7 +121,7 @@ def postVolumes(volumes, local_file = None):
             logger.debug("Saving containers information to : %s" % local_file)
             try:
                 f = open(local_file, 'a+')
-                f.write(msg)
+                f.write(json.dumps(msg))
             except IOError:
                 logger.error("Error opening output file")
                 exit(3)
@@ -155,7 +155,7 @@ def postVersion(version, local_file = None):
         logger.debug("Saving containers information to : %s" % local_file)
         try:
             f = open(local_file, 'a+')
-            f.write(msg)
+            f.write(json.dumps(msg))
         except IOError:
             logger.error("Error opening output file")
             exit(3)
@@ -189,7 +189,7 @@ def postInfo(info, local_file = None):
         logger.debug("Saving containers information to : %s" % local_file)
         try:
             f = open(local_file, 'a+')
-            f.write(msg)
+            f.write(json.dumps(msg))
         except IOError:
             logger.error("Error opening output file")
             exit(3)
@@ -254,8 +254,9 @@ if __name__ == "__main__":
     if args.local:
         try:
             # testing if the script can access the local file
-            local_file = open(args.local, 'a+')
-            local_file.close()
+            r = open(args.local, 'a+')
+            r.close()
+            local_file = args.local
         except IOError:
             logger.error("Error opening local file")
             exit(3)
@@ -270,19 +271,19 @@ if __name__ == "__main__":
     if args.images:
         #getImages()
         #postImages(local_file=local_file)
-        #postImages(getImages(), local_file=local_file)
+        postImages(getImages(), local_file=local_file)
 
     if args.volumes:
         #getVolumes()
         #postVolumes(local_file=local_file)
-        #postVolumes(getVolumes(), local_file=local_file)
+        postVolumes(getVolumes(), local_file=local_file)
     
     if args.docker_version:
         #getVersion()
         #postVersion(local_file=local_file)
-        #postVersion(getVersion(), local_file=local_file)
+        postVersion(getVersion(), local_file=local_file)
         
     if args.docker_info:
         #getInfo()
         #postInfo(local_file=local_file)
-        #postInfo(getInfo(), local_file=local_file)
+        postInfo(getInfo(), local_file=local_file)
