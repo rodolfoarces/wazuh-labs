@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import json
 import subprocess
 import argparse
@@ -23,13 +24,12 @@ def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_que
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Container
     try:
         containers = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        output, errors = containers.communicate()
-        r = json.loads(output)
-        #print(str(r))
+        output_containers, output_errors = containers.communicate()
+        logger.debug(output_containers)
     except Exception as error:
-        logger.error('General error: {0}', error)
+        logger.error('General error: {0}, query error: {1}', error, output_errors)
         exit(1)    
-    return (containers)
+    return (output_containers)
 
 def postContainers(containers, local_file = None):
     for container in containers:
@@ -60,13 +60,12 @@ def getImages(docker_socket_file = '/var/run/docker.sock', docker_socket_query =
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Image
     try:
         images = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        output, errors = images.communicate()
-        r = json.loads(output)
-        #print(str(r))
+        output_images, errors_images = images.communicate()
+        logger.debug(output_images)
     except Exception as error:
-        logger.error('General error: {0}', error)
+        logger.error('General error: {0}, query error: {1}', error, errors_images)
         exit(1)    
-    return (images)            
+    return (output_images)            
     
 def postImages(images, local_file = None):
     for image in images:
@@ -95,14 +94,13 @@ def postImages(images, local_file = None):
 def getVolumes(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/volumes'):
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Volume
     try:
-        images = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        output, errors = images.communicate()
-        r = json.loads(output)
-        #print(str(r))
+        volumes = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output_volumes, errors_volumes = volumes.communicate()
+        logger.debug(output_volumes)
     except Exception as error:
-        logger.error('General error: {0}', error)
+        logger.error('General error: {0}, query error: {1}', error, errors_volumes)
         exit(1)   
-    return (images)            
+    return (output_volumes)            
     
 def postVolumes(volumes, local_file = None):
     for volume in volumes:
@@ -132,13 +130,12 @@ def getVersion(docker_socket_file = '/var/run/docker.sock', docker_socket_query 
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/System/operation/SystemVersion
     try:
         version = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        output, errors = version.communicate()
-        r = json.loads(output)
-        #print(str(r))
+        output_version, errors_version = version.communicate()
+        logger.debug(output_version)
     except Exception as error:
-        logger.error('General error: {0}', error)
+        logger.error('General error: {0}, query error: {1}', error, errors_version)
         exit(1)      
-    return (version)
+    return (output_version)
 
 def postVersion(version, local_file = None):
     msg = { 'service': 'docker', 'docker_version': version }
@@ -167,13 +164,12 @@ def getInfo(docker_socket_file = '/var/run/docker.sock', docker_socket_query = '
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/System/operation/SystemInfo
     try:
         info = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        output, errors = info.communicate()
-        r = json.loads(output)
-        #print(str(r))
+        output_info, errors_info = info.communicate()
+        logger.debug(output_info)
     except Exception as error:
-        logger.error('General error: {0}', error)
+        logger.error('General error: {0}, query error: {1}', error, errors_info)
         exit(1)   
-    return (info)
+    return (output_info)
 
 def postInfo(info, local_file = None):
     msg = { 'service': 'docker', 'docker_info': info }
@@ -207,7 +203,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--images", help = "Obtain running container list", action="store_true")
     parser.add_argument("-v", "--volumes", help = "Obtain volumes list", action="store_true")
     parser.add_argument("-V", "--docker-version", help = "Obtain software version", action="store_true")
-    parser.add_argument("-I", "--docker-info", help = "Obtain software version", action="store_true")
+    parser.add_argument("-I", "--docker-info", help = "Obtain system information", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
     parser.add_argument("-o", "--output", help = "Log output to file")
     parser.add_argument("-D", "--debug", help = "Enable debug", action="store_true")
