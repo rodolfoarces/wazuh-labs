@@ -29,38 +29,32 @@ def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_que
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, output_errors)
         exit(1)    
-    return (output_containers)
+    return (json.loads(output_containers))
 
 def postContainers(containers, local_file = None):
-    if len(containers) <= 0:
-        pass
-    elif len(containers) == 1:
-        logger.debug("Processing single container information")
-    elif len(containers) >= 1:
-        logger.debug("Processing multiple containers: %d", len(containers) )
-        for container in containers:
-            if container["State"] == 'running':
-                msg = { 'service': 'docker', 'docker_container': container }
-                # Default action is to send information via agent/socket
-                if local_file == None: 
-                    string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
-                    try:
-                        sock = socket(AF_UNIX, SOCK_DGRAM)
-                        sock.connect(WAZUH_SOCKET)
-                        sock.send(string.encode())
-                        sock.close()
-                    except FileNotFoundError:
-                        logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
-                        exit(2)
-                # Alternativa option is to save it to a file
-                else:
-                    logger.debug("Saving containers information to : %s" % local_file)
-                    try:
-                        f = open(local_file, 'a+')
-                        f.write(msg)
-                    except IOError:
-                        logger.error("Error opening output file")
-                        exit(3)
+    for container in containers:
+        if container["State"] == 'running':
+            msg = { 'service': 'docker', 'docker_container': container }
+            # Default action is to send information via agent/socket
+            if local_file == None: 
+                string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
+                try:
+                    sock = socket(AF_UNIX, SOCK_DGRAM)
+                    sock.connect(WAZUH_SOCKET)
+                    sock.send(string.encode())
+                    sock.close()
+                except FileNotFoundError:
+                    logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
+                    exit(2)
+            # Alternativa option is to save it to a file
+            else:
+                logger.debug("Saving containers information to : %s" % local_file)
+                try:
+                    f = open(local_file, 'a+')
+                    f.write(msg)
+                except IOError:
+                    logger.error("Error opening output file")
+                    exit(3)
 
 def getImages(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/images/json'):
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Image
@@ -71,7 +65,7 @@ def getImages(docker_socket_file = '/var/run/docker.sock', docker_socket_query =
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, errors_images)
         exit(1)    
-    return (output_images)            
+    return (json.loads(output_images))
     
 def postImages(images, local_file = None):
     for image in images:
@@ -106,7 +100,7 @@ def getVolumes(docker_socket_file = '/var/run/docker.sock', docker_socket_query 
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, errors_volumes)
         exit(1)   
-    return (output_volumes)            
+    return (json.loads(output_volumes))           
     
 def postVolumes(volumes, local_file = None):
     for volume in volumes:
@@ -141,7 +135,7 @@ def getVersion(docker_socket_file = '/var/run/docker.sock', docker_socket_query 
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, errors_version)
         exit(1)      
-    return (output_version)
+    return (json.loads(output_version))
 
 def postVersion(version, local_file = None):
     msg = { 'service': 'docker', 'docker_version': version }
@@ -175,7 +169,7 @@ def getInfo(docker_socket_file = '/var/run/docker.sock', docker_socket_query = '
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, errors_info)
         exit(1)   
-    return (output_info)
+    return (json.loads(output_info))
 
 def postInfo(info, local_file = None):
     msg = { 'service': 'docker', 'docker_info': info }
@@ -269,21 +263,26 @@ if __name__ == "__main__":
         local_file = None
         
     if args.containers:
-        getContainers()
+        #getContainers()
         #postContainers(local_file=local_file)
+        postContainers(getContainers(),local_file=local_file)
     
     if args.images:
-        getImages()
+        #getImages()
         #postImages(local_file=local_file)
-        
+        #postImages(getImages(), local_file=local_file)
+
     if args.volumes:
-        getVolumes()
+        #getVolumes()
         #postVolumes(local_file=local_file)
+        #postVolumes(getVolumes(), local_file=local_file)
     
-    if args.docker-version:
-        getVersion()
+    if args.docker_version:
+        #getVersion()
         #postVersion(local_file=local_file)
+        #postVersion(getVersion(), local_file=local_file)
         
-    if args.docker-info:
-        getInfo()
+    if args.docker_info:
+        #getInfo()
         #postInfo(local_file=local_file)
+        #postInfo(getInfo(), local_file=local_file)
