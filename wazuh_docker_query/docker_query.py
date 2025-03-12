@@ -46,10 +46,11 @@ def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_que
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Container
     try:
         containers = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        output_containers, output_errors = containers.communicate()
+        output_containers, errors_containers = containers.communicate()
         logger.debug(output_containers)
+        logger.debug(errors_containers)
     except Exception as error:
-        logger.error('General error: {0}, query error: {1}', error, output_errors)
+        logger.error('General error: {0}, query error: {1}', error, errors_containers)
         exit(1)    
     return (json.loads(output_containers))
 
@@ -70,6 +71,7 @@ def getImages(docker_socket_file = '/var/run/docker.sock', docker_socket_query =
         images = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         output_images, errors_images = images.communicate()
         logger.debug(output_images)
+        logger.debug(errors_images)
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, errors_images)
         exit(1)    
@@ -91,6 +93,7 @@ def getVolumes(docker_socket_file = '/var/run/docker.sock', docker_socket_query 
         volumes = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         output_volumes, errors_volumes = volumes.communicate()
         logger.debug(output_volumes)
+        logger.debug(errors_volumes)
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, errors_volumes)
         exit(1)   
@@ -112,6 +115,7 @@ def getVersion(docker_socket_file = '/var/run/docker.sock', docker_socket_query 
         version = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         output_version, errors_version = version.communicate()
         logger.debug(output_version)
+        logger.debug(errors_version)
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, errors_version)
         exit(1)      
@@ -132,6 +136,7 @@ def getInfo(docker_socket_file = '/var/run/docker.sock', docker_socket_query = '
         info = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         output_info, errors_info = info.communicate()
         logger.debug(output_info)
+        logger.debug(errors_info)
     except Exception as error:
         logger.error('General error: {0}, query error: {1}', error, errors_info)
         exit(1)   
@@ -145,6 +150,28 @@ def postInfo(info, local_file = None):
     # Alternativa option is to save it to a file
     else:
         saveToFile(msg, local_file)
+
+def getNetworks(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/networks'):
+    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Network/operation/NetworkList
+    try:
+        network = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , docker_socket_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        output_networks, errors_networks = network.communicate()
+        logger.debug(output_networks)
+        logger.debug(errors_networks)
+    except Exception as error:
+        logger.error('General error: {0}, query error: {1}', error, errors_networks)
+        exit(1)   
+    return (json.loads(output_networks))
+
+def postNetworks(networks, local_file = None):
+    for network in networks:
+        msg = { 'service': 'docker', 'docker_network': network }
+        # Default action is to send information via agent/socket
+        if local_file == None: 
+            sentToSocket(msg, location)
+        # Alternativa option is to save it to a file
+        else:
+            saveToFile(msg, local_file)
                           
 if __name__ == "__main__":
     # Read parameters using argparse
@@ -155,6 +182,7 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--containers", help = "Obtain running container list", action="store_true")
     parser.add_argument("-i", "--images", help = "Obtain running container list", action="store_true")
     parser.add_argument("-v", "--volumes", help = "Obtain volumes list", action="store_true")
+    parser.add_argument("-n", "--networks", help = "Obtain networks information", action="store_true")
     parser.add_argument("-V", "--docker-version", help = "Obtain software version", action="store_true")
     parser.add_argument("-I", "--docker-info", help = "Obtain system information", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
@@ -222,6 +250,7 @@ if __name__ == "__main__":
         postVolumes(getVolumes(), local_file=local_file)
         postVersion(getVersion(), local_file=local_file)
         postInfo(getInfo(), local_file=local_file)
+        postNetworks(getNetworks(), local_file=local_file)
     else:    
         if args.containers:
             postContainers(getContainers(),local_file=local_file)
@@ -237,3 +266,6 @@ if __name__ == "__main__":
             
         if args.docker_info:
             postInfo(getInfo(), local_file=local_file)
+            
+        if args.networks:
+            postNetworks(getNetworks(), local_file=local_file)
