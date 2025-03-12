@@ -20,6 +20,7 @@ fh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(mes
 fh.setFormatter(fh_formatter)
 logger.addHandler(fh)
 
+# Saving information to a local file
 def saveToFile(message, local_file):
     logger.debug("Exporting information to : %s" % local_file)
     try:
@@ -86,14 +87,7 @@ def postImages(images, local_file = None):
                 exit(2)
         # Alternativa option is to save it to a file
         else:
-            logger.debug("Saving containers information to : %s" % local_file)
-            try:
-                f = open(local_file, 'a+')
-                f.write(f'{json.dumps(msg)}\n')
-                f.close()
-            except IOError:
-                logger.error("Error opening output file")
-                exit(3)
+            saveToFile(msg, local_file)
 
 def getVolumes(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/volumes'):
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Volume
@@ -122,14 +116,7 @@ def postVolumes(volumes, local_file = None):
                 exit(2)
         # Alternativa option is to save it to a file
         else:
-            logger.debug("Saving containers information to : %s" % local_file)
-            try:
-                f = open(local_file, 'a+')
-                f.write(f'{json.dumps(msg)}\n')
-                f.close()
-            except IOError:
-                logger.error("Error opening output file")
-                exit(3)
+            saveToFile(msg, local_file)
 
 def getVersion(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/version'):
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/System/operation/SystemVersion
@@ -157,14 +144,7 @@ def postVersion(version, local_file = None):
             exit(2)
     # Alternativa option is to save it to a file
     else:
-        logger.debug("Saving containers information to : %s" % local_file)
-        try:
-            f = open(local_file, 'a+')
-            f.write(f'{json.dumps(msg)}\n')
-            f.close()
-        except IOError:
-            logger.error("Error opening output file")
-            exit(3)
+        saveToFile(msg, local_file)
             
 def getInfo(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/info'):
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/System/operation/SystemInfo
@@ -192,14 +172,7 @@ def postInfo(info, local_file = None):
             exit(2)
     # Alternativa option is to save it to a file
     else:
-        logger.debug("Saving containers information to : %s" % local_file)
-        try:
-            f = open(local_file, 'a+')
-            f.write(f'{json.dumps(msg)}\n')
-            f.close()
-        except IOError:
-            logger.error("Error opening output file")
-            exit(3)
+        saveToFile(msg, local_file)
                           
 if __name__ == "__main__":
     # Read parameters using argparse
