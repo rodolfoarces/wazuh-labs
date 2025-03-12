@@ -172,6 +172,38 @@ def postNetworks(networks, local_file = None):
         # Alternativa option is to save it to a file
         else:
             saveToFile(msg, local_file)
+            
+def getContainerStats(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/containers'):
+    # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Container/operation/ContainerStats
+    container_stats = []
+    try:
+        containers = getContainers()
+    except Exception as error:
+        logger.error('General error: {0}, query error: {1}', error, errors_stats)
+        exit(1)
+    if len(containers) >= 1:
+        for container in containers:
+            try:
+                stats_query = docker_socket_query + str(container["Id"]) + "/stats"
+                container_stats_command = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , stats_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                output_stats, errors_stats = container_stats_command.communicate()
+                logger.debug(output_stats)
+                logger.debug(errors_stats)
+            except Exception as error:
+                logger.error('General error: {0}, query error: {1}', error, errors_stats)
+                exit(1)   
+            container_stats.append(output_stats)
+    return(json.loads(container_stats))
+
+def postContainerStats(container_stats, local_file = None):
+    for container_stat in container_stats:
+        msg = { 'service': 'docker', 'docker_container_stat': container_stat }
+        # Default action is to send information via agent/socket
+        if local_file == None: 
+            sentToSocket(msg, location)
+        # Alternativa option is to save it to a file
+        else:
+            saveToFile(msg, local_file)
                           
 if __name__ == "__main__":
     # Read parameters using argparse
@@ -183,6 +215,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--images", help = "Obtain running container list", action="store_true")
     parser.add_argument("-v", "--volumes", help = "Obtain volumes list", action="store_true")
     parser.add_argument("-n", "--networks", help = "Obtain networks information", action="store_true")
+    parser.add_argument("-s", "--stats", help = "Obtain container stats", action="store_true")
     parser.add_argument("-V", "--docker-version", help = "Obtain software version", action="store_true")
     parser.add_argument("-I", "--docker-info", help = "Obtain system information", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
@@ -251,6 +284,7 @@ if __name__ == "__main__":
         postVersion(getVersion(), local_file=local_file)
         postInfo(getInfo(), local_file=local_file)
         postNetworks(getNetworks(), local_file=local_file)
+        postContainerStats(getContainerStats(), local_file=local_file)
     else:    
         if args.containers:
             postContainers(getContainers(),local_file=local_file)
@@ -269,3 +303,6 @@ if __name__ == "__main__":
             
         if args.networks:
             postNetworks(getNetworks(), local_file=local_file)
+            
+        if args.stats:
+            getContainerStats()
