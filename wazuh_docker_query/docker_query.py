@@ -175,16 +175,18 @@ def postNetworks(networks, local_file = None):
             
 def getContainerStats(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/containers'):
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Container/operation/ContainerStats
-    container_stats = []
+    container_stats_list = []
     try:
         containers = getContainers()
     except Exception as error:
-        logger.error('General error: {0}, query error: {1}', error, errors_stats)
+        logger.error('General error: {0}', error)
         exit(1)
+        
     if len(containers) >= 1:
         for container in containers:
             try:
-                stats_query = docker_socket_query + str(container["Id"]) + "/stats"
+                stats_query = docker_socket_query + '/' + str(container["Id"]) + '/stats?stream=false'
+                logger.debug("Stats query endpoint: %s", stats_query)
                 container_stats_command = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , stats_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 output_stats, errors_stats = container_stats_command.communicate()
                 logger.debug(output_stats)
@@ -192,12 +194,13 @@ def getContainerStats(docker_socket_file = '/var/run/docker.sock', docker_socket
             except Exception as error:
                 logger.error('General error: {0}, query error: {1}', error, errors_stats)
                 exit(1)   
-            container_stats.append(output_stats)
-    return(json.loads(container_stats))
+            container_stats_list.append(output_stats)
+
+    return(container_stats_list)
 
 def postContainerStats(container_stats, local_file = None):
     for container_stat in container_stats:
-        msg = { 'service': 'docker', 'docker_container_stat': container_stat }
+        msg = { 'service': 'docker', 'docker_container_stat': json.loads(container_stat) }
         # Default action is to send information via agent/socket
         if local_file == None: 
             sentToSocket(msg, location)
@@ -305,4 +308,4 @@ if __name__ == "__main__":
             postNetworks(getNetworks(), local_file=local_file)
             
         if args.stats:
-            getContainerStats()
+            postContainerStats(getContainerStats(), local_file=local_file)
