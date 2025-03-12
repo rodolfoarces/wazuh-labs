@@ -30,6 +30,18 @@ def saveToFile(message, local_file):
         logger.error("Error opening output file")
         exit(3) 
 
+# Forwarding information to the Wazuh Socket
+def sentToSocket(message, location):
+    string = '1:{0}->docker:{1}'.format(location, json.dumps(message))
+    try:
+        sock = socket(AF_UNIX, SOCK_DGRAM)
+        sock.connect(WAZUH_SOCKET)
+        sock.send(string.encode())
+        sock.close()
+    except FileNotFoundError:
+        logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
+        exit(2)
+
 def getContainers(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/containers/json'):
     # https://docs.docker.com/reference/api/engine/version/v1.48/#tag/Container
     try:
@@ -47,15 +59,7 @@ def postContainers(containers, local_file = None):
             msg = { 'service': 'docker', 'docker_container': container }
             # Default action is to send information via agent/socket
             if local_file == None: 
-                string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
-                try:
-                    sock = socket(AF_UNIX, SOCK_DGRAM)
-                    sock.connect(WAZUH_SOCKET)
-                    sock.send(string.encode())
-                    sock.close()
-                except FileNotFoundError:
-                    logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
-                    exit(2)
+                sentToSocket(msg, location)
             # Alternativa option is to save it to a file
             else:
                 saveToFile(msg, local_file)
@@ -76,15 +80,7 @@ def postImages(images, local_file = None):
         msg = { 'service': 'docker', 'docker_image': image }
         # Default action is to send information via agent/socket
         if local_file == None: 
-            string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
-            try:
-                sock = socket(AF_UNIX, SOCK_DGRAM)
-                sock.connect(WAZUH_SOCKET)
-                sock.send(string.encode())
-                sock.close()
-            except FileNotFoundError:
-                logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
-                exit(2)
+            sentToSocket(msg, location)
         # Alternativa option is to save it to a file
         else:
             saveToFile(msg, local_file)
@@ -105,15 +101,7 @@ def postVolumes(volumes, local_file = None):
         msg = { 'service': 'docker', 'docker_volumes': volume }
         # Default action is to send information via agent/socket
         if local_file == None: 
-            string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
-            try:
-                sock = socket(AF_UNIX, SOCK_DGRAM)
-                sock.connect(WAZUH_SOCKET)
-                sock.send(string.encode())
-                sock.close()
-            except FileNotFoundError:
-                logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
-                exit(2)
+            sentToSocket(msg, location)
         # Alternativa option is to save it to a file
         else:
             saveToFile(msg, local_file)
@@ -133,15 +121,7 @@ def postVersion(version, local_file = None):
     msg = { 'service': 'docker', 'docker_version': version }
     # Default action is to send information via agent/socket
     if local_file == None: 
-        string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
-        try:
-            sock = socket(AF_UNIX, SOCK_DGRAM)
-            sock.connect(WAZUH_SOCKET)
-            sock.send(string.encode())
-            sock.close()
-        except FileNotFoundError:
-            logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
-            exit(2)
+        sentToSocket(msg, location)
     # Alternativa option is to save it to a file
     else:
         saveToFile(msg, local_file)
@@ -161,15 +141,7 @@ def postInfo(info, local_file = None):
     msg = { 'service': 'docker', 'docker_info': info }
     # Default action is to send information via agent/socket
     if local_file == None: 
-        string = '1:{0}->docker:{1}'.format(location, json.dumps(msg))
-        try:
-            sock = socket(AF_UNIX, SOCK_DGRAM)
-            sock.connect(WAZUH_SOCKET)
-            sock.send(string.encode())
-            sock.close()
-        except FileNotFoundError:
-            logger.error('# Error: Unable to open socket connection at %s' % WAZUH_SOCKET)
-            exit(2)
+        sentToSocket(msg, location)
     # Alternativa option is to save it to a file
     else:
         saveToFile(msg, local_file)
@@ -179,6 +151,7 @@ if __name__ == "__main__":
     ## Initialize parser
     parser = argparse.ArgumentParser()
     ## Adding optional argument
+    parser.add_argument("-a", "--all", help = "Obtain all information available", action="store_true")
     parser.add_argument("-c", "--containers", help = "Obtain running container list", action="store_true")
     parser.add_argument("-i", "--images", help = "Obtain running container list", action="store_true")
     parser.add_argument("-v", "--volumes", help = "Obtain volumes list", action="store_true")
@@ -242,28 +215,25 @@ if __name__ == "__main__":
             exit(3)
     else:
         local_file = None
-        
-    if args.containers:
-        #getContainers()
-        #postContainers(local_file=local_file)
+    
+    if args.all:
         postContainers(getContainers(),local_file=local_file)
-    
-    if args.images:
-        #getImages()
-        #postImages(local_file=local_file)
         postImages(getImages(), local_file=local_file)
-
-    if args.volumes:
-        #getVolumes()
-        #postVolumes(local_file=local_file)
         postVolumes(getVolumes(), local_file=local_file)
-    
-    if args.docker_version:
-        #getVersion()
-        #postVersion(local_file=local_file)
         postVersion(getVersion(), local_file=local_file)
-        
-    if args.docker_info:
-        #getInfo()
-        #postInfo(local_file=local_file)
         postInfo(getInfo(), local_file=local_file)
+    else:    
+        if args.containers:
+            postContainers(getContainers(),local_file=local_file)
+        
+        if args.images:
+            postImages(getImages(), local_file=local_file)
+
+        if args.volumes:
+            postVolumes(getVolumes(), local_file=local_file)
+        
+        if args.docker_version:
+            postVersion(getVersion(), local_file=local_file)
+            
+        if args.docker_info:
+            postInfo(getInfo(), local_file=local_file)
