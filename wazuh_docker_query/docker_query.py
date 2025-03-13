@@ -217,8 +217,8 @@ def getContainerMounts():
         exit(1)
     for container in containers:
         for mount in container["Mounts"]:
-            mount_info = { "container_id": container["Id"], "container_mount": mount}
-            container_mounts_list.append(mount_info)
+            mount_info = { "container_id": container["Id"], "container_state": container["State"] , "container_mount": mount}
+            container_mounts_list.append(json.dumps(mount_info))
     
     return(container_mounts_list)
         
