@@ -179,7 +179,7 @@ def getContainerStats(docker_socket_file = '/var/run/docker.sock', docker_socket
     try:
         containers = getContainers()
     except Exception as error:
-        logger.error('General error: {0}', error)
+        logger.error('General error onataing container list - {0}', error)
         exit(1)
         
     if len(containers) >= 1:
@@ -207,6 +207,31 @@ def postContainerStats(container_stats, local_file = None):
         # Alternativa option is to save it to a file
         else:
             saveToFile(msg, local_file)
+
+def getContainerMounts():
+    container_mounts_list = []
+    try:
+        containers = getContainers()
+    except Exception as error:
+        logger.error('General error onataing container list - {0}', error)
+        exit(1)
+    for container in containers:
+        for mount in container["Mounts"]:
+            mount_info = { "container_id": container["Id"], "container_mount": mount}
+            container_mounts_list.append(mount_info)
+    
+    return(container_mounts_list)
+        
+def postContainerMounts(container_mounts, local_file = None):
+    for container_mount in container_mounts:
+        msg = { 'service': 'docker', 'docker_container_mount': json.loads(container_mount) }
+        # Default action is to send information via agent/socket
+        if local_file == None: 
+            sentToSocket(msg, location)
+        # Alternativa option is to save it to a file
+        else:
+            saveToFile(msg, local_file)
+                                              
                           
 if __name__ == "__main__":
     # Read parameters using argparse
@@ -219,6 +244,7 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--volumes", help = "Obtain volumes list", action="store_true")
     parser.add_argument("-n", "--networks", help = "Obtain networks information", action="store_true")
     parser.add_argument("-s", "--stats", help = "Obtain container stats", action="store_true")
+    parser.add_argument("-m", "--mounts", help = "Obtain container mounts", action="store_true")
     parser.add_argument("-V", "--docker-version", help = "Obtain software version", action="store_true")
     parser.add_argument("-I", "--docker-info", help = "Obtain system information", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
@@ -288,6 +314,7 @@ if __name__ == "__main__":
         postInfo(getInfo(), local_file=local_file)
         postNetworks(getNetworks(), local_file=local_file)
         postContainerStats(getContainerStats(), local_file=local_file)
+        postContainerMounts(getContainerMounts(), local_file=local_file)
     else:    
         if args.containers:
             postContainers(getContainers(),local_file=local_file)
@@ -309,3 +336,6 @@ if __name__ == "__main__":
             
         if args.stats:
             postContainerStats(getContainerStats(), local_file=local_file)
+        
+        if args.mounts:
+            postContainerMounts(getContainerMounts(), local_file=local_file)
