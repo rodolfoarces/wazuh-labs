@@ -269,6 +269,7 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--networks", help = "Obtain networks information", action="store_true")
     parser.add_argument("-s", "--stats", help = "Obtain container stats", action="store_true")
     parser.add_argument("-m", "--mounts", help = "Obtain container mounts", action="store_true")
+    parser.add_argument("-p", "--ports", help = "Obtain container ports", action="store_true")
     parser.add_argument("-V", "--docker-version", help = "Obtain software version", action="store_true")
     parser.add_argument("-I", "--docker-info", help = "Obtain system information", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
@@ -339,6 +340,7 @@ if __name__ == "__main__":
         postNetworks(getNetworks(), local_file=local_file)
         postContainerStats(getContainerStats(), local_file=local_file)
         postContainerMounts(getContainerMounts(), local_file=local_file)
+        postContainerPorts(getContainerPorts(), local_file=local_file)
     else:    
         if args.containers:
             postContainers(getContainers(),local_file=local_file)
