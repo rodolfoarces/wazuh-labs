@@ -213,7 +213,7 @@ def getContainerMounts():
     try:
         containers = getContainers()
     except Exception as error:
-        logger.error('General error onataing container list - {0}', error)
+        logger.error('General error obtaining container list - {0}', error)
         exit(1)
     for container in containers:
         for mount in container["Mounts"]:
@@ -237,7 +237,7 @@ def getContainerPorts():
     try:
         containers = getContainers()
     except Exception as error:
-        logger.error('General error onataing container list - {0}', error)
+        logger.error('General error obtaining container list - {0}', error)
         exit(1)
     for container in containers:
         for port in container["Ports"]:
@@ -255,7 +255,38 @@ def postContainerPorts(container_ports, local_file = None):
         # Alternativa option is to save it to a file
         else:
             saveToFile(msg, local_file)
-                                              
+
+def getContainerProcesses(docker_socket_file = '/var/run/docker.sock', docker_socket_query = 'http://localhost/containers'):
+    container_process_list = []
+    try:
+        containers = getContainers()
+    except Exception as error:
+        logger.error('General error obtaining container list - {0}', error)
+        exit(1)
+        
+    for container in containers:
+            try:
+                processes_query = docker_socket_query + '/' + str(container["Id"]) + '/top'
+                logger.debug("Stats query endpoint: %s", processes_query)
+                container_processes_command = subprocess.Popen(['/usr/bin/curl', '--unix-socket', docker_socket_file , processes_query] ,stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                output_processes, errors_processes = container_processes_command.communicate()
+                logger.debug(output_processes)
+                logger.debug(errors_processes)
+            except Exception as error:
+                logger.error('General error: {0}, query error: {1}', error, errors_processes)
+                exit(1)   
+    
+    return("test")
+        
+def postContainerprocesses(container_processes, local_file = None):
+    for container_process in container_processes:
+        msg = { 'service': 'docker', 'docker_container_port': json.loads(container_process) }
+        # Default action is to send information via agent/socket
+        if local_file == None: 
+            sentToSocket(msg, location)
+        # Alternativa option is to save it to a file
+        else:
+            saveToFile(msg, local_file)                                              
                           
 if __name__ == "__main__":
     # Read parameters using argparse
@@ -270,6 +301,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--stats", help = "Obtain container stats", action="store_true")
     parser.add_argument("-m", "--mounts", help = "Obtain container mounts", action="store_true")
     parser.add_argument("-p", "--ports", help = "Obtain container ports", action="store_true")
+    parser.add_argument("-P", "--processes", help = "Obtain container ports", action="store_true")
     parser.add_argument("-V", "--docker-version", help = "Obtain software version", action="store_true")
     parser.add_argument("-I", "--docker-info", help = "Obtain system information", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
@@ -365,3 +397,9 @@ if __name__ == "__main__":
         
         if args.mounts:
             postContainerMounts(getContainerMounts(), local_file=local_file)
+            
+        if args.ports:
+            postContainerPorts(getContainerPorts(), local_file=local_file)
+        
+        if args.processess:
+            getContainerProcesses()
