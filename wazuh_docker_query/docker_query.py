@@ -231,6 +231,30 @@ def postContainerMounts(container_mounts, local_file = None):
         # Alternativa option is to save it to a file
         else:
             saveToFile(msg, local_file)
+
+def getContainerPorts():
+    container_ports_list = []
+    try:
+        containers = getContainers()
+    except Exception as error:
+        logger.error('General error onataing container list - {0}', error)
+        exit(1)
+    for container in containers:
+        for port in container["Ports"]:
+            port_info = { "container_id": container["Id"], "container_state": container["State"] , "container_port": port}
+            container_ports_list.append(json.dumps(port_info))
+    
+    return(container_ports_list)
+        
+def postContainerPorts(container_ports, local_file = None):
+    for container_port in container_ports:
+        msg = { 'service': 'docker', 'docker_container_port': json.loads(container_port) }
+        # Default action is to send information via agent/socket
+        if local_file == None: 
+            sentToSocket(msg, location)
+        # Alternativa option is to save it to a file
+        else:
+            saveToFile(msg, local_file)
                                               
                           
 if __name__ == "__main__":
