@@ -274,13 +274,28 @@ def getContainerProcesses(docker_socket_file = '/var/run/docker.sock', docker_so
                 logger.debug(errors_processes)
             except Exception as error:
                 logger.error('General error: {0}, query error: {1}', error, errors_processes)
-                exit(1)   
-    
-    return("test")
+                exit(1)
+            processes =  json.loads(output_processes)
+            
+            total_titles = len(processes["Titles"])
+            titles = processes["Titles"]
+            for processes in processes["Processes"]:
+                new_process = { "container_id": container["Id"], 
+                                "container_state": container["State"],  
+                                titles[0]: processes[0],
+                                titles[1]: processes[1],
+                                titles[2]: processes[2],
+                                titles[3]: processes[3],
+                                titles[4]: processes[4],
+                                titles[5]: processes[5],
+                                titles[6]: processes[6],
+                                titles[7]: processes[7] }
+                container_process_list.append(json.dumps(new_process))
+    return(container_process_list)
         
-def postContainerprocesses(container_processes, local_file = None):
+def postContainerProcesses(container_processes, local_file = None):
     for container_process in container_processes:
-        msg = { 'service': 'docker', 'docker_container_port': json.loads(container_process) }
+        msg = { 'service': 'docker', 'docker_container_process': json.loads(container_process) }
         # Default action is to send information via agent/socket
         if local_file == None: 
             sentToSocket(msg, location)
@@ -373,6 +388,7 @@ if __name__ == "__main__":
         postContainerStats(getContainerStats(), local_file=local_file)
         postContainerMounts(getContainerMounts(), local_file=local_file)
         postContainerPorts(getContainerPorts(), local_file=local_file)
+        postContainerProcesses(getContainerProcesses(), local_file=local_file)
     else:    
         if args.containers:
             postContainers(getContainers(),local_file=local_file)
@@ -401,5 +417,5 @@ if __name__ == "__main__":
         if args.ports:
             postContainerPorts(getContainerPorts(), local_file=local_file)
         
-        if args.processess:
-            getContainerProcesses()
+        if args.processes:
+            postContainerProcesses(getContainerProcesses(), local_file=local_file)
