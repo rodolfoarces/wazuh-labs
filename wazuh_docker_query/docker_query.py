@@ -302,6 +302,37 @@ def postContainerProcesses(container_processes, local_file = None):
         # Alternativa option is to save it to a file
         else:
             saveToFile(msg, local_file)                                              
+
+def getContainerNetworks():
+    container_network_list = []
+    try:
+        containers = getContainers()
+    except Exception as error:
+        logger.error('General error obtaining container list - {0}', error)
+        exit(1)
+    
+    for container in containers:
+        for network in containers["NetworkSettings"]:
+            key, value = list(network.items())[0]
+            for network_detail in network:
+                container_network = { "container_id": container["Id"],
+                                       "container_network_type" : key,
+                                       "container_network": value }
+                logger.debug("Adding container network: %s", json.dumps(container_network))
+                container_network_list.append(container_network)
+    
+    return container_network_list
+
+def postContainerNetworks(container_networks, local_file = None):
+    for container_network in container_networks:
+        msg = { 'service': 'docker', 'docker_container_network': json.loads(container_network) }
+        # Default action is to send information via agent/socket
+        if local_file == None: 
+            sentToSocket(msg, location)
+        # Alternativa option is to save it to a file
+        else:
+            saveToFile(msg, local_file)    
+
                           
 if __name__ == "__main__":
     # Read parameters using argparse
@@ -313,10 +344,11 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--images", help = "Obtain running container list", action="store_true")
     parser.add_argument("-v", "--volumes", help = "Obtain volumes list", action="store_true")
     parser.add_argument("-n", "--networks", help = "Obtain networks information", action="store_true")
-    parser.add_argument("-s", "--stats", help = "Obtain container stats", action="store_true")
-    parser.add_argument("-m", "--mounts", help = "Obtain container mounts", action="store_true")
-    parser.add_argument("-p", "--ports", help = "Obtain container ports", action="store_true")
-    parser.add_argument("-P", "--processes", help = "Obtain container ports", action="store_true")
+    parser.add_argument("-s", "--container-stats", help = "Obtain container stats", action="store_true")
+    parser.add_argument("-m", "--container-mounts", help = "Obtain container mounts", action="store_true")
+    parser.add_argument("-p", "--container-ports", help = "Obtain container ports", action="store_true")
+    parser.add_argument("-P", "--container-processes", help = "Obtain container ports", action="store_true")
+    parser.add_argument("-N", "--container-networks", help = "Obtain networks information", action="store_true")
     parser.add_argument("-V", "--docker-version", help = "Obtain software version", action="store_true")
     parser.add_argument("-I", "--docker-info", help = "Obtain system information", action="store_true")
     parser.add_argument("-l", "--local", help = "Use local file to store events", action="store")
@@ -408,14 +440,16 @@ if __name__ == "__main__":
         if args.networks:
             postNetworks(getNetworks(), local_file=local_file)
             
-        if args.stats:
+        if args.container_stats:
             postContainerStats(getContainerStats(), local_file=local_file)
         
-        if args.mounts:
+        if args.container_mounts:
             postContainerMounts(getContainerMounts(), local_file=local_file)
             
-        if args.ports:
+        if args.container_ports:
             postContainerPorts(getContainerPorts(), local_file=local_file)
         
-        if args.processes:
+        if args.container_processes:
             postContainerProcesses(getContainerProcesses(), local_file=local_file)
+        if args.container_networks:
+            getContainerNetworks()
