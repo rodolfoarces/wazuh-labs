@@ -312,14 +312,12 @@ def getContainerNetworks():
         exit(1)
     
     for container in containers:
-        #logger.debug("Container data: %s", container)
         for network, network_data in list(container['NetworkSettings']['Networks'].items()):
             logger.debug("Network name %s,  data: %s", network, network_data)
             container_network = { "container_id": container["Id"],
                                  "container_network_name" : network,
                                  "container_network_data": network_data}
             container_network_list.append(container_network)
-    logger.debug(str(container_network_list))
     return container_network_list
 
 def postContainerNetworks(container_networks, local_file = None):
@@ -420,6 +418,7 @@ if __name__ == "__main__":
         postContainerMounts(getContainerMounts(), local_file=local_file)
         postContainerPorts(getContainerPorts(), local_file=local_file)
         postContainerProcesses(getContainerProcesses(), local_file=local_file)
+        postContainerNetworks(getContainerNetworks(), local_file=local_file)
     else:    
         if args.containers:
             postContainers(getContainers(),local_file=local_file)
@@ -451,4 +450,4 @@ if __name__ == "__main__":
         if args.container_processes:
             postContainerProcesses(getContainerProcesses(), local_file=local_file)
         if args.container_networks:
-            getContainerNetworks()
+            postContainerNetworks(getContainerNetworks(), local_file=local_file)
