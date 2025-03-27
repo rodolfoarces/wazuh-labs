@@ -312,15 +312,14 @@ def getContainerNetworks():
         exit(1)
     
     for container in containers:
-        for network in containers["NetworkSettings"]:
-            key, value = list(network.items())[0]
-            for network_detail in network:
-                container_network = { "container_id": container["Id"],
-                                       "container_network_type" : key,
-                                       "container_network": value }
-                logger.debug("Adding container network: %s", json.dumps(container_network))
-                container_network_list.append(container_network)
-    
+        #logger.debug("Container data: %s", container)
+        for network, network_data in list(container['NetworkSettings']['Networks'].items()):
+            logger.debug("Network name %s,  data: %s", network, network_data)
+            container_network = { "container_id": container["Id"],
+                                 "container_network_name" : network,
+                                 "container_network_data": network_data}
+            container_network_list.append(container_network)
+    logger.debug(str(container_network_list))
     return container_network_list
 
 def postContainerNetworks(container_networks, local_file = None):
