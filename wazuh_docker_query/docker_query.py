@@ -317,7 +317,7 @@ def getContainerNetworks():
             container_network = { "container_id": container["Id"],
                                  "container_network_name" : network,
                                  "container_network_data": network_data}
-            container_network_list.append(container_network)
+            container_network_list.append(json.dumps(container_network))
     return container_network_list
 
 def postContainerNetworks(container_networks, local_file = None):
