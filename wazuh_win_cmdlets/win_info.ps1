@@ -1,1 +1,1 @@
-Get-Service -Name W32Time
+Get-WmiObject win32_bios | Select-Object -Property Name,SMBIOSBIOSVersion,Manufacturer,Version | ConvertTo-Json -Compress
