@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  keycloak:
+    image: keycloak/keycloak
+    hostname: auth02.wazuh.local
+    restart: always
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "9000:9000"
+    environment:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin 
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+    command: start
+    volumes:
+      - /opt/keycloak/keycloak.conf:/opt/keycloak/conf/keycloak.conf
+      - keycloak_data:/opt/keycloak/data
+      - /opt/keycloak/auth02.wazuh.local.pem:/opt/keycloak/conf/server.pem
+      - /opt/keycloak/auth02.wazuh.local-key.pem:/opt/keycloak/conf/server-key.pem
+volumes:
+  keycloak_data:
