@@ -5,6 +5,12 @@ from collections import deque
 
 #!/usr/bin/env python3
 """
+EPS Counter (Python) v.1.0
+Wazuh Inc.
+Rodolfo "Rolf" Arce Sannemann <rodolfo.arce@wazuh.com>
+
+--
+
 Realtime log-line counter with rotation/truncation handling.
 
 Usage:
